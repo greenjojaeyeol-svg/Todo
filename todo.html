@@ -7,479 +7,322 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #fef6fb;
-      --card: #ffffff;
-      --pink: #f472b6;
-      --pink-soft: #fce7f3;
-      --pink-mid: #fbcfe8;
-      --purple: #c084fc;
-      --purple-soft: #f3e8ff;
-      --peach: #fb923c;
-      --mint: #34d399;
-      --ink: #3b2a3e;
-      --muted: #a78baa;
-      --border: #f0d6f0;
+      --bg: #fef6fb; --card: #ffffff;
+      --pink: #f472b6; --pink-soft: #fce7f3; --pink-mid: #fbcfe8;
+      --purple: #c084fc; --purple-soft: #f3e8ff;
+      --peach: #fb923c; --mint: #34d399;
+      --ink: #3b2a3e; --muted: #a78baa; --border: #f0d6f0;
       --shadow: rgba(244,114,182,0.15);
     }
-
     body {
-      background: var(--bg);
-      font-family: 'Noto Sans KR', sans-serif;
-      min-height: 100vh;
-      padding: 24px 16px 80px;
-      position: relative;
-      overflow-x: hidden;
+      background: var(--bg); font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh; padding: 24px 16px 80px;
+      position: relative; overflow-x: hidden;
     }
-
-    /* Soft blobs background */
     body::before, body::after {
-      content: '';
-      position: fixed;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      filter: blur(60px);
-      opacity: 0.35;
+      content: ''; position: fixed; border-radius: 50%;
+      pointer-events: none; z-index: 0; filter: blur(60px); opacity: 0.35;
     }
-    body::before {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, #fce7f3, #f3e8ff);
-      top: -100px; right: -100px;
-    }
-    body::after {
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, #fce7f3, #ffe4e6);
-      bottom: -50px; left: -80px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 520px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 1;
-    }
+    body::before { width:400px; height:400px; background:radial-gradient(circle,#fce7f3,#f3e8ff); top:-100px; right:-100px; }
+    body::after  { width:300px; height:300px; background:radial-gradient(circle,#fce7f3,#ffe4e6); bottom:-50px; left:-80px; }
+    .container { width:100%; max-width:520px; margin:0 auto; position:relative; z-index:1; }
 
     /* Loading */
     .loading-overlay {
-      position: fixed; inset: 0; background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100; flex-direction: column; gap: 14px; transition: opacity 0.4s;
+      position:fixed; inset:0; background:var(--bg);
+      display:flex; align-items:center; justify-content:center;
+      z-index:100; flex-direction:column; gap:14px; transition:opacity 0.4s;
     }
-    .loading-overlay.hide { opacity: 0; pointer-events: none; }
-    .loading-dots { display: flex; gap: 8px; }
-    .loading-dots span {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--pink); animation: boing 0.9s infinite alternate;
-    }
-    .loading-dots span:nth-child(2) { background: var(--purple); animation-delay: 0.2s; }
-    .loading-dots span:nth-child(3) { background: var(--peach); animation-delay: 0.4s; }
+    .loading-overlay.hide { opacity:0; pointer-events:none; }
+    .loading-dots { display:flex; gap:8px; }
+    .loading-dots span { width:10px; height:10px; border-radius:50%; background:var(--pink); animation:boing 0.9s infinite alternate; }
+    .loading-dots span:nth-child(2) { background:var(--purple); animation-delay:0.2s; }
+    .loading-dots span:nth-child(3) { background:var(--peach); animation-delay:0.4s; }
     @keyframes boing { from{transform:translateY(0) scale(1)} to{transform:translateY(-10px) scale(0.85)} }
-    .loading-text { font-size: 13px; color: var(--muted); }
+    .loading-text { font-size:13px; color:var(--muted); }
 
-    /* Clock - top right */
-    .clock-widget {
-      position: fixed;
-      top: 18px; right: 18px;
-      background: white;
-      border-radius: 20px;
-      padding: 8px 16px;
+    /* Top bar: weather left, clock right */
+    .top-bar {
+      position: fixed; top: 14px; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 18px; z-index: 50; pointer-events: none;
+    }
+    .weather-pill, .clock-widget {
+      background: white; border-radius: 20px;
       box-shadow: 0 4px 20px var(--shadow);
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      animation: fadeDown 0.5s ease both;
+      display: flex; align-items: center; gap: 8px;
+      pointer-events: auto; animation: fadeDown 0.5s ease both;
     }
+    .weather-pill { padding: 8px 14px; gap: 6px; }
+    .weather-icon { font-size: 18px; line-height: 1; }
+    .weather-temp { font-size: 14px; font-weight: 700; color: var(--ink); }
+    .weather-desc { font-size: 11px; color: var(--muted); }
+    .weather-pill.loading .weather-temp { color: var(--muted); font-weight: 400; font-size:12px; }
+
+    .clock-widget { padding: 8px 16px; }
     .clock-emoji { font-size: 16px; }
-    .clock-time {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--ink);
-      letter-spacing: 0.02em;
-      min-width: 52px;
-    }
-    .clock-ampm {
-      font-size: 10px;
-      color: var(--muted);
-      font-weight: 500;
-    }
+    .clock-time  { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; min-width: 48px; }
+    .clock-ampm  { font-size: 10px; color: var(--muted); font-weight: 500; }
 
     /* Sync */
     .sync-pill {
-      position: fixed; top: 18px; left: 18px;
-      background: white; border-radius: 20px; padding: 6px 12px;
-      box-shadow: 0 4px 16px var(--shadow); z-index: 50;
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; color: var(--muted);
-      opacity: 0; transition: opacity 0.3s;
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:white; border-radius:20px; padding:8px 18px;
+      box-shadow:0 4px 16px var(--shadow); z-index:50;
+      display:flex; align-items:center; gap:6px;
+      font-size:12px; color:var(--muted);
+      opacity:0; transition:opacity 0.3s; white-space:nowrap;
     }
-    .sync-pill.show { opacity: 1; }
-    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
-    .sync-pill.saving .sync-dot { background: var(--peach); animation: pulse 0.6s infinite; }
+    .sync-pill.show { opacity:1; }
+    .sync-dot { width:7px; height:7px; border-radius:50%; background:var(--mint); }
+    .sync-pill.saving .sync-dot { background:var(--peach); animation:pulse 0.6s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     /* Header */
-    .header {
-      margin-top: 16px;
-      margin-bottom: 24px;
-      animation: fadeDown 0.5s ease both;
-    }
-    .header-emoji { font-size: 36px; display: block; margin-bottom: 6px; }
-    .header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--ink);
-      line-height: 1.2;
-    }
+    .header { margin-top:60px; margin-bottom:24px; animation:fadeDown 0.5s ease both; }
+    .header-emoji { font-size:36px; display:block; margin-bottom:6px; }
+    .header h1 { font-size:28px; font-weight:700; color:var(--ink); line-height:1.2; }
     .header h1 .highlight {
-      background: linear-gradient(135deg, var(--pink), var(--purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      background:linear-gradient(135deg,var(--pink),var(--purple));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
     .date-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 8px;
-      background: var(--pink-soft);
-      color: var(--pink);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 4px 12px;
-      border-radius: 99px;
+      display:inline-flex; align-items:center; gap:5px; margin-top:8px;
+      background:var(--pink-soft); color:var(--pink);
+      font-size:12px; font-weight:500; padding:4px 12px; border-radius:99px;
     }
 
     /* Stats */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-      animation: fadeDown 0.5s 0.08s ease both;
-    }
-    .stat-card {
-      background: white;
-      border-radius: 20px;
-      padding: 14px 12px;
-      text-align: center;
-      box-shadow: 0 4px 16px var(--shadow);
-      transition: transform 0.2s;
-    }
-    .stat-card:hover { transform: translateY(-2px); }
-    .stat-num {
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--ink);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .stat-num.pink { color: var(--pink); }
-    .stat-num.purple { color: var(--purple); }
-    .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; animation:fadeDown 0.5s 0.08s ease both; }
+    .stat-card { background:white; border-radius:20px; padding:14px 12px; text-align:center; box-shadow:0 4px 16px var(--shadow); transition:transform 0.2s; }
+    .stat-card:hover { transform:translateY(-2px); }
+    .stat-num { font-size:26px; font-weight:700; color:var(--ink); line-height:1; margin-bottom:4px; }
+    .stat-num.pink { color:var(--pink); }
+    .stat-num.purple { color:var(--purple); }
+    .stat-label { font-size:11px; color:var(--muted); font-weight:500; }
 
     /* Progress */
-    .progress-card {
-      background: white;
-      border-radius: 20px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 16px var(--shadow);
-      animation: fadeDown 0.5s 0.12s ease both;
-    }
-    .progress-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .progress-label { font-size: 12px; color: var(--muted); font-weight: 500; }
-    .progress-pct { font-size: 18px; font-weight: 700; color: var(--pink); }
-    .progress-track {
-      height: 10px;
-      background: var(--pink-soft);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--pink), var(--purple));
-      border-radius: 99px;
-      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
-      width: 0%;
-    }
+    .progress-card { background:white; border-radius:20px; padding:14px 18px; margin-bottom:20px; box-shadow:0 4px 16px var(--shadow); animation:fadeDown 0.5s 0.12s ease both; }
+    .progress-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .progress-label { font-size:12px; color:var(--muted); font-weight:500; }
+    .progress-pct { font-size:18px; font-weight:700; color:var(--pink); }
+    .progress-track { height:10px; background:var(--pink-soft); border-radius:99px; overflow:hidden; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,var(--pink),var(--purple)); border-radius:99px; transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1); width:0%; }
 
     /* Input card */
-    .input-card {
-      background: white;
-      border-radius: 24px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 20px var(--shadow);
-      animation: fadeDown 0.5s 0.16s ease both;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .input-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .input-card { background:white; border-radius:24px; padding:16px; margin-bottom:16px; box-shadow:0 4px 20px var(--shadow); animation:fadeDown 0.5s 0.16s ease both; display:flex; flex-direction:column; gap:10px; }
+    .input-row { display:flex; gap:8px; align-items:center; }
     #task-input {
-      flex: 1;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      outline: none;
-      padding: 12px 16px;
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 14px;
-      color: var(--ink);
-      transition: border-color 0.2s, box-shadow 0.2s;
+      flex:1; background:var(--bg); border:2px solid var(--border); border-radius:14px;
+      outline:none; padding:12px 16px; font-family:'Noto Sans KR',sans-serif;
+      font-size:14px; color:var(--ink); transition:border-color 0.2s,box-shadow 0.2s;
     }
-    #task-input:focus {
-      border-color: var(--pink);
-      box-shadow: 0 0 0 3px var(--pink-soft);
-    }
-    #task-input::placeholder { color: var(--muted); }
-
-    .category-select {
-      background: var(--pink-soft);
-      border: none;
-      border-radius: 12px;
-      padding: 10px 10px;
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 12px;
-      color: var(--pink);
-      font-weight: 600;
-      cursor: pointer;
-      outline: none;
-    }
+    #task-input:focus { border-color:var(--pink); box-shadow:0 0 0 3px var(--pink-soft); }
+    #task-input::placeholder { color:var(--muted); }
+    .category-select { background:var(--pink-soft); border:none; border-radius:12px; padding:10px; font-family:'Noto Sans KR',sans-serif; font-size:12px; color:var(--pink); font-weight:600; cursor:pointer; outline:none; }
     .add-btn {
-      width: 44px; height: 44px;
-      background: linear-gradient(135deg, var(--pink), var(--purple));
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-size: 22px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 14px rgba(244,114,182,0.4);
-      flex-shrink: 0;
-      line-height: 1;
+      width:44px; height:44px; background:linear-gradient(135deg,var(--pink),var(--purple));
+      color:white; border:none; border-radius:14px; font-size:22px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:transform 0.2s,box-shadow 0.2s; box-shadow:0 4px 14px rgba(244,114,182,0.4); flex-shrink:0; line-height:1;
     }
-    .add-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(244,114,182,0.5); }
-    .add-btn:active { transform: scale(0.95); }
-
-    .extra-row {
-      display: flex;
-      gap: 8px;
-    }
-    .extra-field {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 8px 12px;
-      transition: border-color 0.2s;
-      min-width: 0;
-    }
-    .extra-field:focus-within { border-color: var(--pink); }
-    .extra-field label { font-size: 14px; flex-shrink: 0; }
-    .extra-field input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 12px;
-      color: var(--ink);
-      min-width: 0;
-    }
-    .extra-field input::placeholder { color: var(--muted); }
-    .extra-field input::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
+    .add-btn:hover { transform:scale(1.08); box-shadow:0 6px 20px rgba(244,114,182,0.5); }
+    .add-btn:active { transform:scale(0.95); }
+    .extra-row { display:flex; gap:8px; }
+    .extra-field { flex:1; display:flex; align-items:center; gap:6px; background:var(--bg); border:2px solid var(--border); border-radius:12px; padding:8px 12px; transition:border-color 0.2s; min-width:0; }
+    .extra-field:focus-within { border-color:var(--pink); }
+    .extra-field label { font-size:14px; flex-shrink:0; }
+    .extra-field input { flex:1; background:transparent; border:none; outline:none; font-family:'Noto Sans KR',sans-serif; font-size:12px; color:var(--ink); min-width:0; }
+    .extra-field input::placeholder { color:var(--muted); }
+    .extra-field input::-webkit-calendar-picker-indicator { opacity:0.5; cursor:pointer; }
 
     /* Filter tabs */
-    .filter-tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
-      animation: fadeDown 0.5s 0.2s ease both;
-    }
-    .filter-tab {
-      flex: 1;
-      padding: 9px 0;
-      border: none;
-      border-radius: 14px;
-      background: white;
-      color: var(--muted);
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 2px 10px var(--shadow);
-    }
-    .filter-tab.active {
-      background: linear-gradient(135deg, var(--pink), var(--purple));
-      color: white;
-      box-shadow: 0 4px 14px rgba(244,114,182,0.4);
-      transform: translateY(-1px);
-    }
+    .filter-tabs { display:flex; gap:6px; margin-bottom:16px; animation:fadeDown 0.5s 0.2s ease both; }
+    .filter-tab { flex:1; padding:9px 0; border:none; border-radius:14px; background:white; color:var(--muted); font-family:'Noto Sans KR',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 10px var(--shadow); }
+    .filter-tab.active { background:linear-gradient(135deg,var(--pink),var(--purple)); color:white; box-shadow:0 4px 14px rgba(244,114,182,0.4); transform:translateY(-1px); }
 
     /* Todo list */
-    .todo-list { display: flex; flex-direction: column; gap: 8px; }
-
+    .todo-list { display:flex; flex-direction:column; gap:8px; }
     .todo-item {
-      background: white;
-      border-radius: 20px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 16px var(--shadow);
-      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+      background:white; border-radius:20px; padding:14px 16px;
+      display:flex; align-items:center; gap:12px;
+      box-shadow:0 4px 16px var(--shadow); transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s;
+      animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+      position: relative;
     }
-    .todo-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--shadow); }
-    .todo-item:active { transform: scale(0.98); }
-    .todo-item.done { opacity: 0.55; }
-    .todo-item.done .todo-text { text-decoration: line-through; color: var(--muted); }
+    .todo-item:hover { transform:translateY(-2px); box-shadow:0 8px 24px var(--shadow); }
+    .todo-item.done { opacity:0.55; }
+    .todo-item.done .todo-text { text-decoration:line-through; color:var(--muted); }
 
-    .checkbox {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      border: 2.5px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-      background: white;
-    }
-    .todo-item.done .checkbox {
-      background: linear-gradient(135deg, var(--pink), var(--purple));
-      border-color: transparent;
-      box-shadow: 0 3px 10px rgba(244,114,182,0.4);
-    }
-    .checkmark {
-      font-size: 12px; color: white;
-      opacity: 0; transform: scale(0.4);
-      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    .todo-item.done .checkmark { opacity: 1; transform: scale(1); }
+    .checkbox { width:26px; height:26px; border-radius:50%; border:2.5px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); background:white; cursor:pointer; }
+    .todo-item.done .checkbox { background:linear-gradient(135deg,var(--pink),var(--purple)); border-color:transparent; box-shadow:0 3px 10px rgba(244,114,182,0.4); }
+    .checkmark { font-size:12px; color:white; opacity:0; transform:scale(0.4); transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+    .todo-item.done .checkmark { opacity:1; transform:scale(1); }
 
-    .todo-body { flex: 1; min-width: 0; }
-    .todo-text { font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.4; word-break: break-all; }
-    .todo-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+    .todo-body { flex:1; min-width:0; cursor:pointer; }
+    .todo-text { font-size:14px; font-weight:500; color:var(--ink); line-height:1.4; word-break:break-all; }
+    .todo-badges { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
 
-    .badge {
-      font-size: 10px; font-weight: 600;
-      padding: 3px 9px; border-radius: 99px;
-      display: inline-flex; align-items: center; gap: 3px;
-    }
-    .badge-cat  { background: var(--purple-soft); color: var(--purple); }
-    .badge-date { background: var(--pink-soft); color: var(--pink); }
-    .badge-date.overdue { background: #ffe4e6; color: #e11d48; }
-    .badge-date.soon    { background: #fff7ed; color: var(--peach); }
-    .badge-loc  { background: #ecfdf5; color: #059669; }
+    .badge { font-size:10px; font-weight:600; padding:3px 9px; border-radius:99px; display:inline-flex; align-items:center; gap:3px; }
+    .badge-cat  { background:var(--purple-soft); color:var(--purple); }
+    .badge-date { background:var(--pink-soft); color:var(--pink); }
+    .badge-date.overdue { background:#ffe4e6; color:#e11d48; }
+    .badge-date.soon    { background:#fff7ed; color:var(--peach); }
+    .badge-loc  { background:#ecfdf5; color:#059669; }
 
-    .delete-btn {
-      background: var(--pink-soft);
-      border: none;
-      border-radius: 10px;
-      width: 28px; height: 28px;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--pink);
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      opacity: 0;
-      flex-shrink: 0;
+    .item-actions { display:flex; gap:6px; flex-shrink:0; }
+    .edit-btn, .delete-btn {
+      background:var(--pink-soft); border:none; border-radius:10px;
+      width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+      font-size:13px; cursor:pointer; transition:all 0.2s; opacity:0;
     }
-    .todo-item:hover .delete-btn { opacity: 1; }
-    .delete-btn:hover { background: var(--pink); color: white; transform: scale(1.1); }
+    .edit-btn { background:var(--purple-soft); color:var(--purple); }
+    .delete-btn { color:var(--pink); }
+    .todo-item:hover .edit-btn,
+    .todo-item:hover .delete-btn { opacity:1; }
+    .edit-btn:hover   { background:var(--purple); color:white; transform:scale(1.1); }
+    .delete-btn:hover { background:var(--pink); color:white; transform:scale(1.1); }
+
+    /* Edit modal */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(59,42,62,0.35);
+      backdrop-filter:blur(4px); z-index:200;
+      display:flex; align-items:center; justify-content:center; padding:20px;
+      animation:fadeIn 0.2s ease;
+    }
+    .modal-overlay.hide { display:none; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .modal {
+      background:white; border-radius:28px; padding:24px; width:100%; max-width:420px;
+      box-shadow:0 20px 60px rgba(244,114,182,0.25);
+      animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .modal-title { font-size:18px; font-weight:700; color:var(--ink); margin-bottom:16px; }
+    .modal-title span { background:linear-gradient(135deg,var(--pink),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .modal-field { margin-bottom:12px; }
+    .modal-label { font-size:12px; color:var(--muted); font-weight:600; margin-bottom:6px; display:block; }
+    .modal-input, .modal-select {
+      width:100%; background:var(--bg); border:2px solid var(--border); border-radius:14px;
+      outline:none; padding:11px 14px; font-family:'Noto Sans KR',sans-serif;
+      font-size:14px; color:var(--ink); transition:border-color 0.2s;
+    }
+    .modal-input:focus, .modal-select:focus { border-color:var(--pink); }
+    .modal-row { display:flex; gap:8px; }
+    .modal-row .modal-field { flex:1; }
+    .modal-btns { display:flex; gap:8px; margin-top:16px; }
+    .modal-save {
+      flex:1; background:linear-gradient(135deg,var(--pink),var(--purple)); color:white;
+      border:none; border-radius:14px; padding:12px; font-family:'Noto Sans KR',sans-serif;
+      font-size:14px; font-weight:700; cursor:pointer; transition:transform 0.2s;
+      box-shadow:0 4px 14px rgba(244,114,182,0.4);
+    }
+    .modal-save:hover { transform:scale(1.02); }
+    .modal-cancel {
+      background:var(--bg); border:2px solid var(--border); border-radius:14px;
+      padding:12px 18px; font-family:'Noto Sans KR',sans-serif; font-size:14px;
+      color:var(--muted); cursor:pointer; transition:all 0.2s;
+    }
+    .modal-cancel:hover { border-color:var(--pink); color:var(--pink); }
 
     /* Empty */
-    .empty-state { text-align: center; padding: 48px 0; display: none; }
-    .empty-state.visible { display: block; }
-    .empty-icon { font-size: 52px; display: block; margin-bottom: 12px; }
-    .empty-state p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+    .empty-state { text-align:center; padding:48px 0; display:none; }
+    .empty-state.visible { display:block; }
+    .empty-icon { font-size:52px; display:block; margin-bottom:12px; }
+    .empty-state p { font-size:14px; color:var(--muted); line-height:1.7; }
 
     /* Clear btn */
-    .actions-row { display: flex; justify-content: center; margin-top: 20px; }
-    .clear-btn {
-      background: white;
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      padding: 9px 22px;
-      font-family: 'Noto Sans KR', sans-serif;
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 2px 10px var(--shadow);
-    }
-    .clear-btn:hover { border-color: var(--pink); color: var(--pink); transform: translateY(-1px); }
+    .actions-row { display:flex; justify-content:center; margin-top:20px; }
+    .clear-btn { background:white; border:2px solid var(--border); border-radius:14px; padding:9px 22px; font-family:'Noto Sans KR',sans-serif; font-size:13px; color:var(--muted); font-weight:600; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 10px var(--shadow); }
+    .clear-btn:hover { border-color:var(--pink); color:var(--pink); transform:translateY(-1px); }
 
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.88) translateY(8px); }
-      to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes popIn   { from{opacity:0;transform:scale(0.88) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
   </style>
 </head>
 <body>
 
-<!-- Loading -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-dots"><span></span><span></span><span></span></div>
   <div class="loading-text">불러오는 중... 🌸</div>
 </div>
 
-<!-- Clock -->
-<div class="clock-widget" id="clock-widget">
-  <span class="clock-emoji">🕐</span>
-  <span class="clock-time" id="clock-time">--:--</span>
-  <span class="clock-ampm" id="clock-ampm">--</span>
+<!-- Top bar -->
+<div class="top-bar">
+  <!-- Weather (left) -->
+  <div class="weather-pill loading" id="weather-pill">
+    <span class="weather-icon" id="weather-icon">🌤</span>
+    <span class="weather-temp" id="weather-temp">날씨 확인중</span>
+    <span class="weather-desc" id="weather-desc"></span>
+  </div>
+  <!-- Clock (right) -->
+  <div class="clock-widget">
+    <span class="clock-emoji" id="clock-emoji">🕐</span>
+    <span class="clock-time"  id="clock-time">--:--</span>
+    <span class="clock-ampm"  id="clock-ampm">--</span>
+  </div>
 </div>
 
 <!-- Sync -->
 <div class="sync-pill" id="sync-pill">
   <div class="sync-dot"></div>
-  <span id="sync-text">저장됨</span>
+  <span id="sync-text">저장됨 ✓</span>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay hide" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ 할일 <span>수정하기</span></div>
+    <div class="modal-field">
+      <label class="modal-label">할일 내용</label>
+      <input class="modal-input" id="edit-text" type="text" maxlength="100"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">카테고리</label>
+      <select class="modal-select" id="edit-category">
+        <option value="일반">🗒 일반</option>
+        <option value="업무">💼 업무</option>
+        <option value="공부">📚 공부</option>
+        <option value="개인">🧸 개인</option>
+        <option value="운동">🏃 운동</option>
+        <option value="구매">🛍 구매</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label class="modal-label">📅 날짜</label>
+        <input class="modal-input" id="edit-date" type="date"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">⏰ 시간</label>
+        <input class="modal-input" id="edit-time" type="time"/>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">📍 장소</label>
+      <input class="modal-input" id="edit-location" type="text" placeholder="장소 입력" maxlength="30"/>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" id="edit-cancel">취소</button>
+      <button class="modal-save"   id="edit-save">저장하기 ✨</button>
+    </div>
+  </div>
 </div>
 
 <div class="container">
-  <!-- Header -->
   <div class="header">
     <span class="header-emoji">✅</span>
     <h1>나의 <span class="highlight">할일</span> 목록</h1>
-    <div class="date-chip">
-      <span>📅</span>
-      <span id="date-display"></span>
-    </div>
+    <div class="date-chip">📅 <span id="date-display"></span></div>
   </div>
 
-  <!-- Stats -->
   <div class="stats">
     <div class="stat-card">
-      <div class="stat-num" id="total-count">0</div>
+      <div class="stat-num"        id="total-count">0</div>
       <div class="stat-label">전체</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num pink" id="remain-count">0</div>
+      <div class="stat-num pink"   id="remain-count">0</div>
       <div class="stat-label">남은 것</div>
     </div>
     <div class="stat-card">
@@ -488,10 +331,9 @@
     </div>
   </div>
 
-  <!-- Progress -->
   <div class="progress-card">
     <div class="progress-top">
-      <span class="progress-label">✨ 오늘의 진행률</span>
+      <span class="progress-label" id="progress-label">📅 오늘 기한 할일 없음</span>
       <span class="progress-pct" id="progress-pct">0%</span>
     </div>
     <div class="progress-track">
@@ -499,7 +341,6 @@
     </div>
   </div>
 
-  <!-- Input -->
   <div class="input-card">
     <div class="input-row">
       <input id="task-input" type="text" placeholder="새 할일을 입력해요 🌟" maxlength="100"/>
@@ -529,14 +370,12 @@
     </div>
   </div>
 
-  <!-- Filter -->
   <div class="filter-tabs">
     <button class="filter-tab active" data-filter="all">전체</button>
     <button class="filter-tab" data-filter="active">미완료</button>
     <button class="filter-tab" data-filter="done">완료</button>
   </div>
 
-  <!-- List -->
   <div class="todo-list" id="todo-list"></div>
 
   <div class="empty-state" id="empty-state">
@@ -549,7 +388,6 @@
   </div>
 </div>
 
-<!-- Firebase Realtime Database -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getDatabase, ref, push, update, remove, onValue }
@@ -569,44 +407,91 @@
   const db       = getDatabase(app);
   const todosRef = ref(db, 'todos');
 
-  let todos  = [];
-  let filter = 'all';
-  let syncTimer = null;
+  let todos       = [];
+  let filter      = 'all';
+  let syncTimer   = null;
+  let editKey     = null;  // currently editing firebase key
 
-  // ── Clock ──────────────────────────────────────────
-  function updateClock() {
-    const now = new Date();
-    let h = now.getHours();
-    const m = String(now.getMinutes()).padStart(2,'0');
-    const ampm = h < 12 ? 'AM' : 'PM';
-    h = h % 12 || 12;
-    document.getElementById('clock-time').textContent = `${String(h).padStart(2,'0')}:${m}`;
-    document.getElementById('clock-ampm').textContent = ampm;
-    // swap emoji by time
-    const emojis = ['🌙','🌙','🌙','🌙','🌙','🌅','☀️','☀️','☀️','☀️','☀️','☀️',
-                    '☀️','☀️','☀️','☀️','☀️','🌇','🌆','🌉','🌙','🌙','🌙','🌙'];
-    document.querySelector('.clock-emoji').textContent = emojis[now.getHours()];
+  // ── Today's date default ──────────────────────────
+  function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
-  updateClock();
-  setInterval(updateClock, 1000);
+  document.getElementById('due-date').value = todayStr();
 
-  // ── Date header ──────────────────────────────────
+  // ── Date header ───────────────────────────────────
   const now  = new Date();
   const days = ['일','월','화','수','목','금','토'];
   document.getElementById('date-display').textContent =
     `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]}요일)`;
+
+  // ── Clock ─────────────────────────────────────────
+  const timeEmojis = ['🌙','🌙','🌙','🌙','🌙','🌅','☀️','☀️','☀️','☀️','☀️','☀️',
+                      '☀️','☀️','☀️','☀️','☀️','🌇','🌆','🌉','🌙','🌙','🌙','🌙'];
+  function updateClock() {
+    const t = new Date();
+    let h = t.getHours();
+    const m    = String(t.getMinutes()).padStart(2,'0');
+    const ampm = h < 12 ? 'AM' : 'PM';
+    h = h % 12 || 12;
+    document.getElementById('clock-time').textContent  = `${String(h).padStart(2,'0')}:${m}`;
+    document.getElementById('clock-ampm').textContent  = ampm;
+    document.getElementById('clock-emoji').textContent = timeEmojis[t.getHours()];
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Weather (Open-Meteo, no API key needed) ───────
+  const WMO = {
+    0:'맑음',1:'대체로 맑음',2:'부분 흐림',3:'흐림',
+    45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',
+    61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',
+    80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우',96:'뇌우',99:'뇌우'
+  };
+  const WMO_ICON = {
+    0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',
+    51:'🌦',53:'🌦',55:'🌦',61:'🌧',63:'🌧',65:'🌧',
+    71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌦',82:'⛈',
+    95:'⛈',96:'⛈',99:'⛈'
+  };
+
+  async function loadWeather(lat, lon) {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`;
+      const res  = await fetch(url);
+      const data = await res.json();
+      const temp = Math.round(data.current.temperature_2m);
+      const code = data.current.weathercode;
+      const pill = document.getElementById('weather-pill');
+      pill.classList.remove('loading');
+      document.getElementById('weather-icon').textContent = WMO_ICON[code] || '🌤';
+      document.getElementById('weather-temp').textContent = `${temp}°C`;
+      document.getElementById('weather-desc').textContent = WMO[code] || '';
+    } catch(e) {
+      document.getElementById('weather-temp').textContent = '날씨 오류';
+    }
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => loadWeather(pos.coords.latitude, pos.coords.longitude),
+      ()  => {
+        // fallback: Seoul
+        loadWeather(37.5665, 126.9780);
+      }
+    );
+  } else {
+    loadWeather(37.5665, 126.9780);
+  }
 
   // ── Sync indicator ────────────────────────────────
   function showSync(saving = false) {
     const pill = document.getElementById('sync-pill');
     const text = document.getElementById('sync-text');
     pill.classList.add('show');
-    if (saving) {
-      pill.classList.add('saving');
-      text.textContent = '저장 중...';
-    } else {
-      pill.classList.remove('saving');
-      text.textContent = '저장됨 ✓';
+    if (saving) { pill.classList.add('saving'); text.textContent = '저장 중...'; }
+    else {
+      pill.classList.remove('saving'); text.textContent = '저장됨 ✓';
       clearTimeout(syncTimer);
       syncTimer = setTimeout(() => pill.classList.remove('show'), 2000);
     }
@@ -631,31 +516,38 @@
   }
 
   function updateStats() {
-    const total  = todos.length;
-    const done   = todos.filter(t => t.done).length;
-    const remain = total - done;
-    const pct    = total === 0 ? 0 : Math.round((done / total) * 100);
+    const total = todos.length;
+    const done  = todos.filter(t => t.done).length;
     document.getElementById('total-count').textContent  = total;
     document.getElementById('done-count').textContent   = done;
-    document.getElementById('remain-count').textContent = remain;
+    document.getElementById('remain-count').textContent = total - done;
+
+    // 오늘 기한인 것만 진행률 계산
+    const today      = todayStr();
+    const todayTodos = todos.filter(t => t.dueDate === today);
+    const todayDone  = todayTodos.filter(t => t.done).length;
+    const pct = todayTodos.length === 0 ? 0 : Math.round((todayDone / todayTodos.length) * 100);
     document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('progress-pct').textContent  = pct + '%';
+    document.getElementById('progress-pct').textContent  = todayTodos.length === 0 ? '-' : pct + '%';
+    document.getElementById('progress-label').textContent =
+      todayTodos.length === 0
+        ? '📅 오늘 기한 할일 없음'
+        : `📅 오늘 ${todayDone}/${todayTodos.length} 완료`;
   }
 
   function getDueBadge(todo) {
     if (!todo.dueDate) return '';
     const now = new Date();
-    const due = new Date(todo.dueDate + (todo.dueTime ? 'T' + todo.dueTime : 'T23:59'));
+    const due = new Date(todo.dueDate + (todo.dueTime ? 'T'+todo.dueTime : 'T23:59'));
     const diff = due - now, diffH = diff / 3600000;
-    let cls = '', label = '';
-    if (!todo.done && diff < 0)        { cls = 'overdue'; label = '⚠️ 기한 초과'; }
-    else if (!todo.done && diffH < 24) { cls = 'soon';    label = '⏰ ' + fmt(todo.dueDate, todo.dueTime); }
-    else                               {                   label = '📅 ' + fmt(todo.dueDate, todo.dueTime); }
+    let cls='', label='';
+    if (!todo.done && diff<0)        { cls='overdue'; label='⚠️ 기한 초과'; }
+    else if (!todo.done && diffH<24) { cls='soon';    label='⏰ '+fmt(todo.dueDate,todo.dueTime); }
+    else                             {                label='📅 '+fmt(todo.dueDate,todo.dueTime); }
     return `<span class="badge badge-date ${cls}">${label}</span>`;
   }
-
   function fmt(date, time) {
-    const d = new Date(date + 'T00:00');
+    const d = new Date(date+'T00:00');
     return time ? `${d.getMonth()+1}/${d.getDate()} ${time}` : `${d.getMonth()+1}/${d.getDate()}`;
   }
 
@@ -664,7 +556,6 @@
     const empty = document.getElementById('empty-state');
     const filtered = getFiltered();
     list.innerHTML = '';
-
     if (filtered.length === 0) {
       empty.classList.add('visible');
     } else {
@@ -673,29 +564,65 @@
         const el = document.createElement('div');
         el.className = 'todo-item' + (todo.done ? ' done' : '');
         el.style.animationDelay = (i * 0.05) + 's';
-
-        const locBadge  = todo.location ? `<span class="badge badge-loc">📍 ${esc(todo.location)}</span>` : '';
-        const catBadge  = `<span class="badge badge-cat">${esc(todo.category)}</span>`;
-
+        const locBadge = todo.location ? `<span class="badge badge-loc">📍 ${esc(todo.location)}</span>` : '';
+        const catBadge = `<span class="badge badge-cat">${esc(todo.category)}</span>`;
         el.innerHTML = `
           <div class="checkbox"><span class="checkmark">✓</span></div>
           <div class="todo-body">
             <div class="todo-text">${esc(todo.text)}</div>
             <div class="todo-badges">${catBadge}${getDueBadge(todo)}${locBadge}</div>
           </div>
-          <button class="delete-btn" title="삭제">✕</button>
+          <div class="item-actions">
+            <button class="edit-btn"   title="수정">✏️</button>
+            <button class="delete-btn" title="삭제">✕</button>
+          </div>
         `;
         el.querySelector('.checkbox').addEventListener('click', () => toggleTodo(todo));
         el.querySelector('.todo-body').addEventListener('click', () => toggleTodo(todo));
-        el.querySelector('.delete-btn').addEventListener('click', e => {
-          e.stopPropagation(); removeTodo(todo.firebaseKey);
-        });
+        el.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openEdit(todo); });
+        el.querySelector('.delete-btn').addEventListener('click', e => { e.stopPropagation(); removeTodo(todo.firebaseKey); });
         list.appendChild(el);
       });
     }
     updateStats();
   }
 
+  // ── Edit modal ────────────────────────────────────
+  function openEdit(todo) {
+    editKey = todo.firebaseKey;
+    document.getElementById('edit-text').value     = todo.text || '';
+    document.getElementById('edit-category').value = todo.category || '일반';
+    document.getElementById('edit-date').value     = todo.dueDate || todayStr();
+    document.getElementById('edit-time').value     = todo.dueTime || '';
+    document.getElementById('edit-location').value = todo.location || '';
+    document.getElementById('edit-modal').classList.remove('hide');
+    document.getElementById('edit-text').focus();
+  }
+  function closeEdit() {
+    editKey = null;
+    document.getElementById('edit-modal').classList.add('hide');
+  }
+  async function saveEdit() {
+    if (!editKey) return;
+    const text = document.getElementById('edit-text').value.trim();
+    if (!text) return;
+    showSync(true);
+    await update(ref(db, 'todos/' + editKey), {
+      text,
+      category: document.getElementById('edit-category').value,
+      dueDate:  document.getElementById('edit-date').value,
+      dueTime:  document.getElementById('edit-time').value,
+      location: document.getElementById('edit-location').value.trim(),
+    });
+    showSync(false);
+    closeEdit();
+  }
+  document.getElementById('edit-cancel').addEventListener('click', closeEdit);
+  document.getElementById('edit-save').addEventListener('click', saveEdit);
+  document.getElementById('edit-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeEdit(); });
+  document.getElementById('edit-text').addEventListener('keydown', e => { if(e.key==='Enter') saveEdit(); });
+
+  // ── CRUD ──────────────────────────────────────────
   async function toggleTodo(todo) {
     showSync(true);
     await update(ref(db, 'todos/' + todo.firebaseKey), { done: !todo.done });
@@ -716,6 +643,9 @@
     const location = document.getElementById('location-input').value.trim();
     input.value = '';
     document.getElementById('location-input').value = '';
+    // Reset date to today after adding
+    document.getElementById('due-date').value = todayStr();
+    document.getElementById('due-time').value = '';
     showSync(true);
     await push(todosRef, { text, category, done: false, dueDate, dueTime, location, createdAt: Date.now() });
     showSync(false);
@@ -735,9 +665,7 @@
   document.querySelectorAll('.filter-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      filter = tab.dataset.filter;
-      render();
+      tab.classList.add('active'); filter = tab.dataset.filter; render();
     });
   });
   document.getElementById('clear-done').addEventListener('click', clearDone);
