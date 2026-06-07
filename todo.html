@@ -7,450 +7,201 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #f5f0e8;
-      --paper: #fdfaf4;
-      --ink: #1a1410;
-      --accent: #c0392b;
-      --accent2: #e67e22;
-      --muted: #8a7f72;
-      --line: #d4c9b8;
-      --done-color: #b0a898;
+      --bg: #f5f0e8; --paper: #fdfaf4; --ink: #1a1410;
+      --accent: #c0392b; --accent2: #e67e22; --muted: #8a7f72;
+      --line: #d4c9b8; --done-color: #b0a898;
     }
-
     body {
-      background: var(--bg);
-      font-family: 'Noto Serif KR', serif;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 48px 16px 80px;
-      position: relative;
-      overflow-x: hidden;
+      background: var(--bg); font-family: 'Noto Serif KR', serif;
+      min-height: 100vh; display: flex; justify-content: center;
+      align-items: flex-start; padding: 48px 16px 80px;
+      position: relative; overflow-x: hidden;
     }
-
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
+      content: ''; position: fixed; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
     }
+    .container { width: 100%; max-width: 560px; position: relative; z-index: 1; }
 
-    .container {
-      width: 100%;
-      max-width: 560px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Loading overlay */
     .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      flex-direction: column;
-      gap: 12px;
-      transition: opacity 0.4s;
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; flex-direction: column; gap: 12px; transition: opacity 0.4s;
     }
     .loading-overlay.hide { opacity: 0; pointer-events: none; }
-    .loading-dot {
-      display: flex; gap: 6px;
-    }
+    .loading-dot { display: flex; gap: 6px; }
     .loading-dot span {
-      width: 8px; height: 8px;
-      background: var(--accent);
-      border-radius: 50%;
-      animation: bounce 0.8s infinite alternate;
+      width: 8px; height: 8px; background: var(--accent);
+      border-radius: 50%; animation: bounce 0.8s infinite alternate;
     }
     .loading-dot span:nth-child(2) { animation-delay: 0.2s; }
     .loading-dot span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
-    .loading-text {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 0.15em;
-    }
+    @keyframes bounce { from{transform:translateY(0)} to{transform:translateY(-8px)} }
+    .loading-text { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.15em; }
 
-    /* Sync indicator */
     .sync-indicator {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      opacity: 0;
-      transition: opacity 0.3s;
+      position: fixed; top: 16px; right: 16px;
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      color: var(--muted); letter-spacing: 0.1em; z-index: 10;
+      display: flex; align-items: center; gap: 5px;
+      opacity: 0; transition: opacity 0.3s;
     }
     .sync-indicator.show { opacity: 1; }
-    .sync-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #27ae60;
-    }
-    .sync-indicator.saving .sync-dot { background: var(--accent2); animation: pulse 0.6s infinite; }
+    .sync-dot { width:6px; height:6px; border-radius:50%; background:#27ae60; }
+    .sync-indicator.saving .sync-dot { background:var(--accent2); animation:pulse 0.6s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* Header */
-    .header {
-      margin-bottom: 36px;
-      animation: fadeDown 0.6s ease both;
-    }
-    .header-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      color: var(--accent);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .header h1 {
-      font-size: clamp(32px, 6vw, 48px);
-      font-weight: 700;
-      color: var(--ink);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-    }
-    .header h1 span { color: var(--accent); }
-    .date-line {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 8px;
-    }
+    .header { margin-bottom:36px; animation:fadeDown 0.6s ease both; }
+    .header-label { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase; margin-bottom:6px; }
+    .header h1 { font-size:clamp(32px,6vw,48px); font-weight:700; color:var(--ink); line-height:1.1; letter-spacing:-0.02em; }
+    .header h1 span { color:var(--accent); }
+    .date-line { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); margin-top:8px; }
 
-    /* Stats */
     .stats {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 28px;
-      padding: 14px 20px;
-      background: var(--paper);
-      border: 1.5px solid var(--line);
-      border-radius: 2px;
-      animation: fadeDown 0.6s 0.1s ease both;
+      display:flex; gap:24px; margin-bottom:28px; padding:14px 20px;
+      background:var(--paper); border:1.5px solid var(--line); border-radius:2px;
+      animation:fadeDown 0.6s 0.1s ease both;
     }
-    .stat { display: flex; flex-direction: column; gap: 2px; }
-    .stat-num {
-      font-family: 'DM Mono', monospace;
-      font-size: 22px;
-      font-weight: 500;
-      color: var(--ink);
-      line-height: 1;
-    }
-    .stat-num.accent { color: var(--accent); }
-    .stat-label { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
-    .progress-wrap { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-    .progress-bar { width: 100px; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .stat { display:flex; flex-direction:column; gap:2px; }
+    .stat-num { font-family:'DM Mono',monospace; font-size:22px; font-weight:500; color:var(--ink); line-height:1; }
+    .stat-num.accent { color:var(--accent); }
+    .stat-label { font-size:11px; color:var(--muted); letter-spacing:0.05em; }
+    .progress-wrap { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    .progress-bar { width:100px; height:6px; background:var(--line); border-radius:99px; overflow:hidden; }
     .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      border-radius: 99px;
-      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      width: 0%;
+      height:100%; background:linear-gradient(90deg,var(--accent2),var(--accent));
+      border-radius:99px; transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1); width:0%;
     }
-    .progress-pct { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); min-width: 32px; }
+    .progress-pct { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); min-width:32px; }
 
-    /* Input area */
     .input-area {
-      display: flex;
-      margin-bottom: 10px;
-      animation: fadeDown 0.6s 0.15s ease both;
-      border: 1.5px solid var(--line);
-      background: var(--paper);
-      border-radius: 2px;
-      overflow: hidden;
-      transition: border-color 0.2s;
+      display:flex; margin-bottom:10px; animation:fadeDown 0.6s 0.15s ease both;
+      border:1.5px solid var(--line); background:var(--paper); border-radius:2px;
+      overflow:hidden; transition:border-color 0.2s;
     }
-    .input-area:focus-within { border-color: var(--accent); }
+    .input-area:focus-within { border-color:var(--accent); }
     #task-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: 14px 18px;
-      font-family: 'Noto Serif KR', serif;
-      font-size: 15px;
-      color: var(--ink);
+      flex:1; background:transparent; border:none; outline:none;
+      padding:14px 18px; font-family:'Noto Serif KR',serif; font-size:15px; color:var(--ink);
     }
-    #task-input::placeholder { color: var(--muted); }
+    #task-input::placeholder { color:var(--muted); }
     .category-select {
-      border: none;
-      border-left: 1.5px solid var(--line);
-      background: transparent;
-      padding: 0 12px;
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--muted);
-      cursor: pointer;
-      outline: none;
+      border:none; border-left:1.5px solid var(--line); background:transparent;
+      padding:0 12px; font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); cursor:pointer; outline:none;
     }
     .add-btn {
-      background: var(--ink);
-      color: var(--bg);
-      border: none;
-      padding: 14px 20px;
-      font-family: 'DM Mono', monospace;
-      font-size: 18px;
-      cursor: pointer;
-      transition: background 0.2s;
-      line-height: 1;
+      background:var(--ink); color:var(--bg); border:none; padding:14px 20px;
+      font-family:'DM Mono',monospace; font-size:18px; cursor:pointer; transition:background 0.2s; line-height:1;
     }
-    .add-btn:hover { background: var(--accent); }
+    .add-btn:hover { background:var(--accent); }
 
-    /* Extra fields row */
-    .extra-fields {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-      animation: fadeDown 0.6s 0.17s ease both;
-    }
+    .extra-fields { display:flex; gap:8px; margin-bottom:24px; animation:fadeDown 0.6s 0.17s ease both; }
     .extra-field {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      padding: 9px 14px;
-      background: var(--paper);
-      border: 1.5px solid var(--line);
-      border-radius: 2px;
-      transition: border-color 0.2s;
-      min-width: 0;
+      display:flex; align-items:center; gap:8px; flex:1; padding:9px 14px;
+      background:var(--paper); border:1.5px solid var(--line); border-radius:2px;
+      transition:border-color 0.2s; min-width:0;
     }
-    .extra-field:focus-within { border-color: var(--accent); }
+    .extra-field:focus-within { border-color:var(--accent); }
     .extra-field label {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      white-space: nowrap;
-      flex-shrink: 0;
+      font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em;
+      text-transform:uppercase; color:var(--muted); white-space:nowrap; flex-shrink:0;
     }
     .extra-field input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--ink);
-      cursor: pointer;
-      min-width: 0;
+      flex:1; background:transparent; border:none; outline:none;
+      font-family:'DM Mono',monospace; font-size:12px; color:var(--ink); cursor:pointer; min-width:0;
     }
-    .extra-field input[type="text"] {
-      font-family: 'Noto Serif KR', serif;
-      font-size: 13px;
-    }
-    .extra-field input::placeholder { color: var(--muted); }
-    .extra-field input::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
+    .extra-field input[type="text"] { font-family:'Noto Serif KR',serif; font-size:13px; }
+    .extra-field input::placeholder { color:var(--muted); }
+    .extra-field input::-webkit-calendar-picker-indicator { opacity:0.4; cursor:pointer; }
 
-    /* Filter tabs */
-    .filter-tabs {
-      display: flex;
-      gap: 2px;
-      margin-bottom: 20px;
-      animation: fadeDown 0.6s 0.2s ease both;
-    }
+    .filter-tabs { display:flex; gap:2px; margin-bottom:20px; animation:fadeDown 0.6s 0.2s ease both; }
     .filter-tab {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      padding: 6px 14px;
-      border: 1.5px solid var(--line);
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      border-radius: 2px;
-      transition: all 0.2s;
-      text-transform: uppercase;
+      font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.1em;
+      padding:6px 14px; border:1.5px solid var(--line); background:transparent;
+      color:var(--muted); cursor:pointer; border-radius:2px; transition:all 0.2s; text-transform:uppercase;
     }
-    .filter-tab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .filter-tab.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
 
-    /* Todo list */
-    .todo-list { display: flex; flex-direction: column; gap: 4px; }
+    .todo-list { display:flex; flex-direction:column; gap:4px; }
     .todo-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 18px;
-      background: var(--paper);
-      border: 1.5px solid var(--line);
-      border-radius: 2px;
-      cursor: pointer;
-      transition: all 0.25s;
-      animation: slideIn 0.35s ease both;
-      position: relative;
-      overflow: hidden;
+      display:flex; align-items:center; gap:14px; padding:14px 18px;
+      background:var(--paper); border:1.5px solid var(--line); border-radius:2px;
+      cursor:pointer; transition:all 0.25s; animation:slideIn 0.35s ease both; position:relative; overflow:hidden;
     }
     .todo-item::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px;
-      background: var(--accent);
-      transform: scaleY(0);
-      transform-origin: bottom;
-      transition: transform 0.25s;
+      content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+      background:var(--accent); transform:scaleY(0); transform-origin:bottom; transition:transform 0.25s;
     }
-    .todo-item:hover::before { transform: scaleY(1); }
-    .todo-item:hover { border-color: var(--accent); transform: translateX(2px); }
-    .todo-item.done { opacity: 0.6; }
-    .todo-item.done .todo-text { text-decoration: line-through; color: var(--done-color); }
-
+    .todo-item:hover::before { transform:scaleY(1); }
+    .todo-item:hover { border-color:var(--accent); transform:translateX(2px); }
+    .todo-item.done { opacity:0.6; }
+    .todo-item.done .todo-text { text-decoration:line-through; color:var(--done-color); }
     .checkbox {
-      width: 20px; height: 20px;
-      border: 2px solid var(--line);
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
+      width:20px; height:20px; border:2px solid var(--line); border-radius:50%;
+      flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s;
     }
-    .todo-item.done .checkbox { background: var(--accent); border-color: var(--accent); }
-    .checkmark {
-      opacity: 0;
-      transform: scale(0.5);
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      color: white;
-      font-size: 11px;
-    }
-    .todo-item.done .checkmark { opacity: 1; transform: scale(1); }
-
-    .todo-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    .todo-text { font-size: 15px; color: var(--ink); line-height: 1.4; transition: color 0.2s; word-break: break-all; }
-    .todo-badges { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-
-    .todo-meta { display: flex; align-items: center; gap: 8px; }
+    .todo-item.done .checkbox { background:var(--accent); border-color:var(--accent); }
+    .checkmark { opacity:0; transform:scale(0.5); transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); color:white; font-size:11px; }
+    .todo-item.done .checkmark { opacity:1; transform:scale(1); }
+    .todo-body { flex:1; display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .todo-text { font-size:15px; color:var(--ink); line-height:1.4; transition:color 0.2s; word-break:break-all; }
+    .todo-badges { display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+    .todo-meta { display:flex; align-items:center; gap:8px; }
     .category-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 99px;
-      color: var(--muted);
-      border: 1px solid var(--line);
+      font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase;
+      padding:3px 8px; border-radius:99px; color:var(--muted); border:1px solid var(--line);
     }
     .due-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      padding: 2px 7px;
-      border-radius: 99px;
-      border: 1px solid var(--line);
-      color: var(--muted);
-      white-space: nowrap;
+      font-family:'DM Mono',monospace; font-size:9px; padding:2px 7px;
+      border-radius:99px; border:1px solid var(--line); color:var(--muted); white-space:nowrap;
     }
-    .due-badge.overdue { border-color: var(--accent); color: var(--accent); background: rgba(192,57,43,0.06); }
-    .due-badge.soon { border-color: var(--accent2); color: var(--accent2); background: rgba(230,126,34,0.06); }
+    .due-badge.overdue { border-color:var(--accent); color:var(--accent); background:rgba(192,57,43,0.06); }
+    .due-badge.soon { border-color:var(--accent2); color:var(--accent2); background:rgba(230,126,34,0.06); }
     .location-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      padding: 2px 7px;
-      border-radius: 99px;
-      border: 1px solid #b8d4e8;
-      color: #4a7fa5;
-      background: rgba(74,127,165,0.06);
-      white-space: nowrap;
+      font-family:'DM Mono',monospace; font-size:9px; padding:2px 7px;
+      border-radius:99px; border:1px solid #b8d4e8; color:#4a7fa5;
+      background:rgba(74,127,165,0.06); white-space:nowrap;
     }
-
     .delete-btn {
-      background: none;
-      border: none;
-      color: var(--line);
-      cursor: pointer;
-      font-size: 16px;
-      line-height: 1;
-      padding: 2px 4px;
-      transition: color 0.2s;
-      opacity: 0;
+      background:none; border:none; color:var(--line); cursor:pointer;
+      font-size:16px; line-height:1; padding:2px 4px; transition:color 0.2s; opacity:0;
     }
-    .todo-item:hover .delete-btn { opacity: 1; }
-    .delete-btn:hover { color: var(--accent); }
+    .todo-item:hover .delete-btn { opacity:1; }
+    .delete-btn:hover { color:var(--accent); }
 
-    /* Empty state */
-    .empty-state { text-align: center; padding: 48px 0; color: var(--muted); display: none; }
-    .empty-state.visible { display: block; }
-    .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; display: block; }
-    .empty-state p { font-size: 14px; line-height: 1.6; }
+    .empty-state { text-align:center; padding:48px 0; color:var(--muted); display:none; }
+    .empty-state.visible { display:block; }
+    .empty-state .empty-icon { font-size:40px; margin-bottom:12px; display:block; }
+    .empty-state p { font-size:14px; line-height:1.6; }
 
-    /* Actions */
-    .actions-row {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 20px;
-      animation: fadeDown 0.6s 0.25s ease both;
-    }
+    .actions-row { display:flex; justify-content:flex-end; margin-top:20px; animation:fadeDown 0.6s 0.25s ease both; }
     .clear-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      background: none;
-      border: 1px solid var(--line);
-      color: var(--muted);
-      padding: 7px 14px;
-      cursor: pointer;
-      border-radius: 2px;
-      transition: all 0.2s;
+      font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+      background:none; border:1px solid var(--line); color:var(--muted); padding:7px 14px;
+      cursor:pointer; border-radius:2px; transition:all 0.2s;
     }
-    .clear-btn:hover { border-color: var(--accent); color: var(--accent); }
-
+    .clear-btn:hover { border-color:var(--accent); color:var(--accent); }
     .corner-mark {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--line);
-      letter-spacing: 0.1em;
-      writing-mode: vertical-rl;
-      z-index: 1;
+      position:fixed; bottom:28px; right:28px; font-family:'DM Mono',monospace;
+      font-size:10px; color:var(--line); letter-spacing:0.1em; writing-mode:vertical-rl; z-index:1;
     }
-
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-10px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
     @keyframes pop {
-      0%   { transform: scale(1); }
-      40%  { transform: scale(0.95); }
-      70%  { transform: scale(1.03); }
-      100% { transform: scale(1); }
+      0%{transform:scale(1)} 40%{transform:scale(0.95)} 70%{transform:scale(1.03)} 100%{transform:scale(1)}
     }
-    .pop { animation: pop 0.35s ease; }
+    .pop { animation:pop 0.35s ease; }
   </style>
 </head>
 <body>
 
-<!-- Loading overlay -->
 <div class="loading-overlay" id="loading-overlay">
-  <div class="loading-dot">
-    <span></span><span></span><span></span>
-  </div>
+  <div class="loading-dot"><span></span><span></span><span></span></div>
   <div class="loading-text">데이터 불러오는 중...</div>
 </div>
 
-<!-- Sync indicator -->
 <div class="sync-indicator" id="sync-indicator">
   <div class="sync-dot"></div>
   <span id="sync-text">저장됨</span>
@@ -532,12 +283,12 @@
 
 <div class="corner-mark">TODO LIST</div>
 
-<!-- Firebase -->
+<!-- Firebase Realtime Database -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import {
-    getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy
-  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    getDatabase, ref, push, update, remove, onValue, get
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCItutGKUCET2VyDOuHcA3yemaAIlCcqBo",
@@ -551,10 +302,10 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const todosCol = collection(db, "todos");
+  const db  = getDatabase(app);
+  const todosRef = ref(db, 'todos');
 
-  let todos = [];
+  let todos  = [];
   let filter = 'all';
   let syncTimer = null;
 
@@ -564,9 +315,8 @@
   document.getElementById('date-display').textContent =
     `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]}요일)`;
 
-  // Sync indicator
   function showSync(saving = false) {
-    const el = document.getElementById('sync-indicator');
+    const el   = document.getElementById('sync-indicator');
     const text = document.getElementById('sync-text');
     el.classList.add('show');
     if (saving) {
@@ -581,11 +331,13 @@
   }
 
   // Real-time listener
-  const q = query(todosCol, orderBy("createdAt", "desc"));
-  onSnapshot(q, (snapshot) => {
-    todos = snapshot.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+  onValue(todosRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    todos = Object.entries(data)
+      .map(([key, val]) => ({ firebaseKey: key, ...val }))
+      .sort((a, b) => b.createdAt - a.createdAt);
     render();
-    // Hide loading
+
     const overlay = document.getElementById('loading-overlay');
     overlay.classList.add('hide');
     setTimeout(() => overlay.style.display = 'none', 400);
@@ -598,10 +350,10 @@
   }
 
   function updateStats() {
-    const total = todos.length;
-    const done  = todos.filter(t => t.done).length;
+    const total  = todos.length;
+    const done   = todos.filter(t => t.done).length;
     const remain = total - done;
-    const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+    const pct    = total === 0 ? 0 : Math.round((done / total) * 100);
     document.getElementById('total-count').textContent  = total;
     document.getElementById('done-count').textContent   = done;
     document.getElementById('remain-count').textContent = remain;
@@ -613,29 +365,23 @@
     if (!todo.dueDate) return '';
     const now = new Date();
     const due = new Date(todo.dueDate + (todo.dueTime ? 'T' + todo.dueTime : 'T23:59'));
-    const diff = due - now;
+    const diff  = due - now;
     const diffH = diff / 3600000;
     let cls = '', label = '';
-    if (!todo.done && diff < 0) {
-      cls = 'overdue'; label = '⚠ 기한 초과';
-    } else if (!todo.done && diffH < 24) {
-      cls = 'soon'; label = '⏰ ' + formatDue(todo.dueDate, todo.dueTime);
-    } else {
-      label = '📅 ' + formatDue(todo.dueDate, todo.dueTime);
-    }
+    if (!todo.done && diff < 0)       { cls = 'overdue'; label = '⚠ 기한 초과'; }
+    else if (!todo.done && diffH < 24) { cls = 'soon';    label = '⏰ ' + formatDue(todo.dueDate, todo.dueTime); }
+    else                               {                   label = '📅 ' + formatDue(todo.dueDate, todo.dueTime); }
     return `<span class="due-badge ${cls}">${label}</span>`;
   }
 
   function formatDue(date, time) {
     const d = new Date(date + 'T00:00');
-    const m = d.getMonth() + 1;
-    const day = d.getDate();
-    return time ? `${m}/${day} ${time}` : `${m}/${day}`;
+    return time ? `${d.getMonth()+1}/${d.getDate()} ${time}` : `${d.getMonth()+1}/${d.getDate()}`;
   }
 
   function render() {
-    const list = document.getElementById('todo-list');
-    const empty = document.getElementById('empty-state');
+    const list     = document.getElementById('todo-list');
+    const empty    = document.getElementById('empty-state');
     const filtered = getFiltered();
     list.innerHTML = '';
 
@@ -647,29 +393,23 @@
         const el = document.createElement('div');
         el.className = 'todo-item' + (todo.done ? ' done' : '');
         el.style.animationDelay = (i * 0.04) + 's';
-
-        const locationBadge = todo.location
-          ? `<span class="location-badge">📍 ${escapeHtml(todo.location)}</span>` : '';
-
+        const locBadge = todo.location ? `<span class="location-badge">📍 ${escapeHtml(todo.location)}</span>` : '';
         el.innerHTML = `
           <div class="checkbox"><span class="checkmark">✓</span></div>
           <div class="todo-body">
             <div class="todo-text">${escapeHtml(todo.text)}</div>
-            <div class="todo-badges">
-              ${getDueBadgeHtml(todo)}${locationBadge}
-            </div>
+            <div class="todo-badges">${getDueBadgeHtml(todo)}${locBadge}</div>
           </div>
           <div class="todo-meta">
             <span class="category-badge">${escapeHtml(todo.category)}</span>
             <button class="delete-btn" title="삭제">×</button>
           </div>
         `;
-
         el.querySelector('.checkbox').addEventListener('click', () => toggleTodo(todo));
         el.querySelector('.todo-body').addEventListener('click', () => toggleTodo(todo));
         el.querySelector('.delete-btn').addEventListener('click', (e) => {
           e.stopPropagation();
-          removeTodo(todo.firestoreId);
+          removeTodo(todo.firebaseKey);
         });
         list.appendChild(el);
       });
@@ -679,54 +419,45 @@
 
   async function toggleTodo(todo) {
     showSync(true);
-    const ref = doc(db, "todos", todo.firestoreId);
-    await updateDoc(ref, { done: !todo.done });
+    await update(ref(db, 'todos/' + todo.firebaseKey), { done: !todo.done });
     showSync(false);
   }
 
-  async function removeTodo(firestoreId) {
+  async function removeTodo(key) {
     showSync(true);
-    await deleteDoc(doc(db, "todos", firestoreId));
+    await remove(ref(db, 'todos/' + key));
     showSync(false);
   }
 
   async function addTodo() {
     const input = document.getElementById('task-input');
-    const text = input.value.trim();
+    const text  = input.value.trim();
     if (!text) return;
-    const category  = document.getElementById('category-select').value;
-    const dueDate   = document.getElementById('due-date').value;
-    const dueTime   = document.getElementById('due-time').value;
-    const location  = document.getElementById('location-input').value.trim();
+    const category = document.getElementById('category-select').value;
+    const dueDate  = document.getElementById('due-date').value;
+    const dueTime  = document.getElementById('due-time').value;
+    const location = document.getElementById('location-input').value.trim();
 
     input.value = '';
     document.getElementById('location-input').value = '';
-
     showSync(true);
-    await addDoc(todosCol, {
-      text, category, done: false,
-      dueDate, dueTime, location,
-      createdAt: Date.now()
-    });
+    await push(todosRef, { text, category, done: false, dueDate, dueTime, location, createdAt: Date.now() });
     showSync(false);
     input.focus();
   }
 
   async function clearDone() {
     showSync(true);
-    const doneTodos = todos.filter(t => t.done);
-    await Promise.all(doneTodos.map(t => deleteDoc(doc(db, "todos", t.firestoreId))));
+    await Promise.all(todos.filter(t => t.done).map(t => remove(ref(db, 'todos/' + t.firebaseKey))));
     showSync(false);
   }
 
   function escapeHtml(str) {
-    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   document.getElementById('add-btn').addEventListener('click', addTodo);
-  document.getElementById('task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addTodo();
-  });
+  document.getElementById('task-input').addEventListener('keydown', e => { if(e.key==='Enter') addTodo(); });
   document.querySelectorAll('.filter-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
