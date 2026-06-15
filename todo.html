@@ -236,6 +236,25 @@
     .clear-btn { background:white; border:2px solid var(--border); border-radius:14px; padding:9px 22px; font-family:'Noto Sans KR',sans-serif; font-size:13px; color:var(--muted); font-weight:600; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 10px var(--shadow); }
     .clear-btn:hover { border-color:var(--pink); color:var(--pink); transform:translateY(-1px); }
 
+    /* Drag handle */
+    .drag-handle {
+      display: flex; align-items: center; justify-content: center;
+      width: 24px; flex-shrink: 0;
+      color: var(--border); font-size: 16px;
+      cursor: grab; opacity: 0; transition: opacity 0.2s;
+      touch-action: none;
+    }
+    .todo-item:hover .drag-handle { opacity: 1; }
+    .drag-handle:active { cursor: grabbing; }
+    .todo-item.dragging {
+      opacity: 0.4; transform: scale(0.98);
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    .todo-item.drag-over {
+      border: 2px dashed var(--pink) !important;
+      transform: translateY(-3px);
+    }
+
     @keyframes fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
     @keyframes popIn   { from{opacity:0;transform:scale(0.88) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
   </style>
@@ -411,6 +430,7 @@
   let filter      = 'all';
   let syncTimer   = null;
   let editKey     = null;  // currently editing firebase key
+  let dragSrcKey  = null;  // key being dragged
 
   // ── Today's date default ──────────────────────────
   function todayStr() {
@@ -502,7 +522,7 @@
     const data = snapshot.val() || {};
     todos = Object.entries(data)
       .map(([key, val]) => ({ firebaseKey: key, ...val }))
-      .sort((a, b) => b.createdAt - a.createdAt);
+      .sort((a, b) => (b.order ?? b.createdAt) - (a.order ?? a.createdAt));
     render();
     const overlay = document.getElementById('loading-overlay');
     overlay.classList.add('hide');
@@ -566,6 +586,8 @@
         el.style.animationDelay = (i * 0.05) + 's';
         const locBadge = todo.location ? `<span class="badge badge-loc">📍 ${esc(todo.location)}</span>` : '';
         const catBadge = `<span class="badge badge-cat">${esc(todo.category)}</span>`;
+        el.dataset.key = todo.firebaseKey;
+        el.draggable = true;
         el.innerHTML = `
           <div class="checkbox"><span class="checkmark">✓</span></div>
           <div class="todo-body">
@@ -581,6 +603,33 @@
         el.querySelector('.todo-body').addEventListener('click', () => toggleTodo(todo));
         el.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openEdit(todo); });
         el.querySelector('.delete-btn').addEventListener('click', e => { e.stopPropagation(); removeTodo(todo.firebaseKey); });
+
+        // ── Drag & Drop ──
+        el.addEventListener('dragstart', e => {
+          dragSrcKey = todo.firebaseKey;
+          setTimeout(() => el.classList.add('dragging'), 0);
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        el.addEventListener('dragend', () => {
+          el.classList.remove('dragging');
+          document.querySelectorAll('.todo-item').forEach(i => i.classList.remove('drag-over'));
+        });
+        el.addEventListener('dragover', e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (dragSrcKey !== todo.firebaseKey) {
+            document.querySelectorAll('.todo-item').forEach(i => i.classList.remove('drag-over'));
+            el.classList.add('drag-over');
+          }
+        });
+        el.addEventListener('drop', e => {
+          e.preventDefault();
+          if (dragSrcKey && dragSrcKey !== todo.firebaseKey) {
+            reorderTodos(dragSrcKey, todo.firebaseKey);
+          }
+          el.classList.remove('drag-over');
+        });
+
         list.appendChild(el);
       });
     }
@@ -651,6 +700,30 @@
     showSync(false);
     input.focus();
   }
+  async function reorderTodos(srcKey, targetKey) {
+    // Build new order: move src before target in filtered list
+    const filtered = getFiltered();
+    const srcIdx    = filtered.findIndex(t => t.firebaseKey === srcKey);
+    const targetIdx = filtered.findIndex(t => t.firebaseKey === targetKey);
+    if (srcIdx < 0 || targetIdx < 0) return;
+
+    const reordered = [...filtered];
+    const [moved] = reordered.splice(srcIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+
+    // Assign new order values and save to Firebase
+    showSync(true);
+    const now = Date.now();
+    const updates = {};
+    reordered.forEach((todo, i) => {
+      // Use descending order values so first item sorts highest
+      updates['todos/' + todo.firebaseKey + '/order'] = now - i;
+    });
+    await update(ref(db), updates);
+    showSync(false);
+    dragSrcKey = null;
+  }
+
   async function clearDone() {
     showSync(true);
     await Promise.all(todos.filter(t => t.done).map(t => remove(ref(db, 'todos/' + t.firebaseKey))));
